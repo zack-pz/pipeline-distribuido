@@ -1,2 +1,15 @@
+# Codigo compilado de Rust
+target/
+
+# Llaves y certificados
+*.key, *.pem, *.p12
+
+# Configuracion de WireGuard
+wg0.conf
+
+# Variables de entorno
+.env
+
+# Archivos del proyecto
 backlog.md
 proyecto/
