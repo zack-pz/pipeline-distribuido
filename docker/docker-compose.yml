@@ -1,0 +1,43 @@
+services:
+  coordinator:
+    build:
+      context: ..
+      dockerfile: docker/coordinator/Dockerfile
+    environment:
+      - RUST_LOG=info
+      - COORDINATOR_BIND_ADDR=0.0.0.0:8080
+    ports:
+      - "8080:8080"
+    networks:
+      - pipeline
+
+  edge:
+    build:
+      context: ..
+      dockerfile: docker/edge/Dockerfile
+    environment:
+      - RUST_LOG=info
+      - EDGE_ID=edge-1
+      - COORDINATOR_ADDR=coordinator:8080
+    depends_on:
+      - coordinator
+    networks:
+      - pipeline
+
+  sensor:
+    build:
+      context: ..
+      dockerfile: docker/sensor/Dockerfile
+    environment:
+      - RUST_LOG=info
+      - SENSOR_ID=sensor-1
+      - EDGE_ADDR=edge:7001
+      - INTERVAL_MS=500
+    depends_on:
+      - edge
+    networks:
+      - pipeline
+
+networks:
+  pipeline:
+    driver: bridge
