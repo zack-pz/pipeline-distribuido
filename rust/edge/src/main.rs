@@ -2,11 +2,15 @@ use shared::{SensorReading, EdgeReport, Heartbeat};
 use tokio::net::{TcpListener, TcpStream};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use std::time::{SystemTime, UNIX_EPOCH, Duration};
+use std::env;
 
 #[tokio::main]
 async fn main() -> std::io::Result<()> {
-    let edge_id = "edge_angel".to_string();
+    let edge_id = env::var("EDGE_ID").unwrap_or_else(|_| "edge_angel".to_string());
+    let listen_addr = env::var("EDGE_BIND_ADDR").unwrap_or_else(|_| "0.0.0.0:8001".to_string());
+    let coordinator_addr = env::var("COORDINATOR_ADDR").unwrap_or_else(|_| "127.0.0.1:9001".to_string());
     let edge_id_clone = edge_id.clone();
+    let coordinator_addr_clone = coordinator_addr.clone();
 
     // TAREA SEPARADA: Heartbeat cada 3 segundos (Criterio B4)
     tokio::spawn(async move {
@@ -20,7 +24,7 @@ async fn main() -> std::io::Result<()> {
             };
             
             // Intentar enviar latido al coordinador
-            if let Ok(mut stream) = TcpStream::connect("127.0.0.1:9001").await {
+            if let Ok(mut stream) = TcpStream::connect(&coordinator_addr_clone).await {
                 let json = serde_json::to_string(&hb).unwrap();
                 let _ = stream.write_all(json.as_bytes()).await;
             }
@@ -28,7 +32,7 @@ async fn main() -> std::io::Result<()> {
     });
 
     // FLUJO PRINCIPAL: Procesamiento de datos
-    let listener = TcpListener::bind("127.0.0.1:8001").await?;
+    let listener = TcpListener::bind(&listen_addr).await?;
     println!(">>> EDGE NODE ACTIVO (Enviando Heartbeats cada 3s)");
 
     loop {
@@ -45,7 +49,7 @@ async fn main() -> std::io::Result<()> {
                 latency_ms: now_ms.saturating_sub(reading.timestamp_ms),
             };
 
-            if let Ok(mut coord_stream) = TcpStream::connect("127.0.0.1:9001").await {
+            if let Ok(mut coord_stream) = TcpStream::connect(&coordinator_addr).await {
                 let json = serde_json::to_string(&report).unwrap();
                 let _ = coord_stream.write_all(json.as_bytes()).await;
             }

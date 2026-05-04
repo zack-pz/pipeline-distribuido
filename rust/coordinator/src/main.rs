@@ -1,12 +1,14 @@
 use shared::{EdgeReport, Heartbeat};
 use tokio::net::TcpListener;
 use tokio::io::AsyncReadExt;
+use std::env;
 use tracing::{info, Level};
 
 #[tokio::main]
 async fn main() -> std::io::Result<()> {
+    let bind_addr = env::var("COORDINATOR_BIND_ADDR").unwrap_or_else(|_| "0.0.0.0:9001".to_string());
     tracing_subscriber::fmt().with_max_level(Level::INFO).init();
-    let listener = TcpListener::bind("127.0.0.1:9001").await?;
+    let listener = TcpListener::bind(&bind_addr).await?;
     info!("COORDINATOR VIGILANDO (Datos y Heartbeats)");
 
     loop {
