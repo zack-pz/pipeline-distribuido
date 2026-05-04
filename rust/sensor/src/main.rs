@@ -14,6 +14,7 @@ async fn main() -> std::io::Result<()> {
                 sensor_id: "sensor_angel".to_string(),
                 value: rng.gen_range(15.0..40.0),
                 timestamp_ms: SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis() as u64,
+                unit: "C".to_string(),
             };
             let json = serde_json::to_string(&reading).unwrap();
             stream.write_all(json.as_bytes()).await?;
