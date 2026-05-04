@@ -4,10 +4,10 @@ services:
       context: ..
       dockerfile: docker/coordinator/Dockerfile
     environment:
-      - RUST_LOG=info
-      - COORDINATOR_BIND_ADDR=0.0.0.0:8080
+      - RUST_LOG=${RUST_LOG:-info}
+      - COORDINATOR_BIND_ADDR=${COORDINATOR_BIND_ADDR:-0.0.0.0:9001}
     ports:
-      - "8080:8080"
+      - "${COORDINATOR_PORT:-9001}:9001"
     networks:
       - pipeline
 
@@ -16,11 +16,14 @@ services:
       context: ..
       dockerfile: docker/edge/Dockerfile
     environment:
-      - RUST_LOG=info
-      - EDGE_ID=edge-1
-      - COORDINATOR_ADDR=coordinator:8080
+      - RUST_LOG=${RUST_LOG:-info}
+      - EDGE_ID=${EDGE_ID:-edge-1}
+      - EDGE_BIND_ADDR=${EDGE_BIND_ADDR:-0.0.0.0:8001}
+      - COORDINATOR_ADDR=${COORDINATOR_ADDR:-coordinator:9001}
     depends_on:
       - coordinator
+    ports:
+      - "${EDGE_PORT:-8001}:8001"
     networks:
       - pipeline
 
@@ -29,10 +32,10 @@ services:
       context: ..
       dockerfile: docker/sensor/Dockerfile
     environment:
-      - RUST_LOG=info
-      - SENSOR_ID=sensor-1
-      - EDGE_ADDR=edge:7001
-      - INTERVAL_MS=500
+      - RUST_LOG=${RUST_LOG:-info}
+      - SENSOR_ID=${SENSOR_ID:-sensor-1}
+      - EDGE_ADDR=${EDGE_ADDR:-edge:8001}
+      - INTERVAL_MS=${INTERVAL_MS:-1000}
     depends_on:
       - edge
     networks:
