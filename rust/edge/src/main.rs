@@ -36,11 +36,13 @@ async fn main() -> std::io::Result<()> {
         let mut buf = [0; 1024];
         let n = socket.read(&mut buf).await?;
         if let Ok(reading) = serde_json::from_slice::<SensorReading>(&buf[..n]) {
+            let now_ms = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis() as u64;
             let report = EdgeReport {
                 edge_id: edge_id.clone(),
                 window_avg: reading.value,
-                anomaly: reading.value > 35.0,
-                timestamp_ms: SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis() as u64,
+                anomaly_detected: reading.value > 35.0,
+                sample_count: 1,
+                latency_ms: now_ms.saturating_sub(reading.timestamp_ms),
             };
 
             if let Ok(mut coord_stream) = TcpStream::connect("127.0.0.1:9001").await {

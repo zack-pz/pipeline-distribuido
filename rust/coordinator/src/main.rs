@@ -17,7 +17,7 @@ async fn main() -> std::io::Result<()> {
 
         // Intentar deserializar como Reporte
         if let Ok(report) = serde_json::from_slice::<EdgeReport>(msg) {
-            info!(tipo = "DATA", node = %report.edge_id, avg = %report.window_avg, "Mensaje");
+            info!(tipo = "DATA", node = %report.edge_id, avg = %report.window_avg, anomaly = %report.anomaly_detected, latency_ms = %report.latency_ms, "Mensaje");
         } 
         // Si no es reporte, intentar como Heartbeat
         else if let Ok(hb) = serde_json::from_slice::<Heartbeat>(msg) {
